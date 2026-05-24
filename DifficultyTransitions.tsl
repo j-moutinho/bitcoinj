@@ -1,0 +1,17 @@
+Test Case: checkDifficultyTransitions
+
+Parameters:
+
+  Transition State:
+    Not a Transition              [property NotTransition]
+    Is a Transition               [property IsTransition]
+
+  Timespan Delta:
+    Too Short                     [if IsTransition]
+    Normal                        [if IsTransition]
+    Too Long                      [if IsTransition]
+    Not Applicable                [if NotTransition] [single]
+
+  Target Match:
+    Matches Expected
+    Does Not Match                  [error]

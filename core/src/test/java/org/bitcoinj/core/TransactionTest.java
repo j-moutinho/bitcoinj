@@ -17,12 +17,7 @@
 
 package org.bitcoinj.core;
 
-import org.bitcoinj.base.Address;
-import org.bitcoinj.base.BitcoinNetwork;
-import org.bitcoinj.base.Coin;
-import org.bitcoinj.base.ScriptType;
-import org.bitcoinj.base.Sha256Hash;
-import org.bitcoinj.base.VarInt;
+import org.bitcoinj.base.*;
 import org.bitcoinj.base.internal.TimeUtils;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.ECKey;
@@ -63,11 +58,13 @@ import static org.bitcoinj.base.internal.Preconditions.checkState;
 import static org.bitcoinj.core.ProtocolVersion.WITNESS_VERSION;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Just check the Transaction.verify() method. Most methods that have complicated logic in Transaction are tested
@@ -756,4 +753,68 @@ public class TransactionTest {
         Transaction tx = serializer.withProtocolVersion(protoVersionNoWitness).makeTransaction(ByteBuffer.wrap(ByteUtils.parseHex(txHex)));
         assertEquals(txHex, ByteUtils.formatHex(tx.serialize()));
     }
+    // =========================================================================
+    // SOFTWARE QUALITY PROJECT: WHITE BOX (MC/DC & Paths)
+    // =========================================================================
+
+    // TC01, TC02, TC03, TC04, TC05 já presentes no código acima (testWB01 a testWB05)
+
+    @Test
+    public void testWB06_ArithmeticException() {
+        Transaction tx = new Transaction();
+        tx.addInput(TransactionInput.coinbaseInput(tx, new byte[2]));
+        // Injetar valor MAX_MONEY para causar overflow no .add()
+        tx.addOutput(new TransactionOutput(tx, BitcoinNetwork.MAX_MONEY, new byte[0]));
+        tx.addOutput(new TransactionOutput(tx, Coin.SATOSHI, new byte[0]));
+
+        assertThrows(VerificationException.ExcessiveValue.class, () -> Transaction.verify(TESTNET.network(), tx));
+    }
+
+    @Test
+    public void testWB08_CoinbaseScriptTooSmall() {
+        Transaction tx = new Transaction();
+        tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().data(new byte[1]).build());
+        assertThrows(VerificationException.CoinbaseScriptSizeOutOfRange.class, () -> Transaction.verify(TESTNET.network(), tx));
+    }
+
+    @Test
+    public void testWB11_UnexpectedCoinbaseInput() {
+        Transaction tx = new Transaction();
+        // Input normal + Input Coinbase (Inválido)
+        tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().build());
+        tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().data(new byte[10]).build());
+        tx.addOutput(new TransactionOutput(tx, Coin.FIFTY_COINS, new byte[0]));
+
+        assertThrows(VerificationException.UnexpectedCoinbaseInput.class, () -> Transaction.verify(TESTNET.network(), tx));
+    }
+
+    // =========================================================================
+    // SOFTWARE QUALITY PROJECT: DATA FLOW (DF01 & DF02)
+    // =========================================================================
+
+    @Test
+    public void testDF01_SingleOutputAccumulation() {
+        Network mockNetwork = mock(Network.class);
+        Transaction tx = new Transaction();
+        tx.addInput(TransactionInput.coinbaseInput(tx, new byte[2]));
+        tx.addOutput(new TransactionOutput(tx, Coin.valueOf(50), new byte[0]));
+
+        Transaction.verify(mockNetwork, tx);
+        verify(mockNetwork, times(1)).exceedsMaxMoney(Coin.valueOf(50));
+    }
+
+    @Test
+    public void testDF02_MultipleOutputAccumulation() {
+        Network mockNetwork = mock(Network.class);
+        Transaction tx = new Transaction();
+        tx.addInput(TransactionInput.coinbaseInput(tx, new byte[2]));
+
+        tx.addOutput(new TransactionOutput(tx, Coin.valueOf(50), new byte[0]));
+        tx.addOutput(new TransactionOutput(tx, Coin.valueOf(20), new byte[0]));
+
+        Transaction.verify(mockNetwork, tx);
+        // Verifica se acumulou: 50+20 = 70
+        verify(mockNetwork, times(1)).exceedsMaxMoney(Coin.valueOf(70));
+    }
+
 }

@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     api project(':bitcoinj-base')
+
 }
 
 tasks.withType(JavaCompile) {
