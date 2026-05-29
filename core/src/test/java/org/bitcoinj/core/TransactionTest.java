@@ -760,11 +760,11 @@ public class TransactionTest {
     }
 
 
-    // white box (MC/DC and paths)
+    // white box
     // TC1, TC2, TC3, TC4, TC5 at the code above
 
     @Test
-    public void testWB06_ArithmeticException() {
+    public void testTC6_ArithmeticException() {
         Transaction tx = new Transaction();
         tx.addInput(TransactionInput.coinbaseInput(tx, new byte[2]));
         tx.addOutput(new TransactionOutput(tx, BitcoinNetwork.MAX_MONEY, new byte[0])); // MAX_MONEY to cause overflow
@@ -774,19 +774,25 @@ public class TransactionTest {
     }
 
     @Test
-    public void testWB08_CoinbaseScriptTooSmall() {
+    public void testTC8_CoinbaseScriptTooSmall() {
         Transaction tx = new Transaction();
         tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().data(new byte[1]).build());
         assertThrows(VerificationException.CoinbaseScriptSizeOutOfRange.class, () -> Transaction.verify(TESTNET.network(), tx));
     }
+    @Test
+    public void testTC10_ValidCoinbaseTransaction() {
+
+        Transaction tx = FakeTxBuilder.createFakeCoinbaseTx();
+        tx.replaceInput(0, tx.getInput(0).withScriptBytes(new byte[50]));
+
+        Transaction.verify(TESTNET.network(), tx);
+    }
 
     @Test
-    public void testWB11_UnexpectedCoinbaseInput() {
+    public void testTC11_UnexpectedCoinbaseInput() {
         Transaction tx = new Transaction();
-
         // Normal input
         tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().build());
-
         // Invalid Input
         tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().data(new byte[10]).build());
         tx.addOutput(new TransactionOutput(tx, Coin.FIFTY_COINS, new byte[0]));
@@ -794,9 +800,15 @@ public class TransactionTest {
         assertThrows(VerificationException.UnexpectedCoinbaseInput.class, () -> Transaction.verify(TESTNET.network(), tx));
     }
 
+        @Test
+    public void testTC12_ValidStandardTransaction() {
+        Transaction tx = FakeTxBuilder.createFakeTx(TESTNET.network(), Coin.COIN, ADDRESS);
+        Transaction.verify(TESTNET.network(), tx);
+    }
+
     // data-flow (DF1, DF2)
     @Test
-    public void testDF01_SingleOutputAccumulation() {
+    public void testDF1_SingleOutputAccumulation() {
         Network mockNetwork = mock(Network.class);
         Transaction tx = new Transaction();
         tx.addInput(TransactionInput.coinbaseInput(tx, new byte[2]));
@@ -807,7 +819,7 @@ public class TransactionTest {
     }
 
     @Test
-    public void testDF02_MultipleOutputAccumulation() {
+    public void testDF2_MultipleOutputAccumulation() {
         Network mockNetwork = mock(Network.class);
         Transaction tx = new Transaction();
         tx.addInput(TransactionInput.coinbaseInput(tx, new byte[2]));

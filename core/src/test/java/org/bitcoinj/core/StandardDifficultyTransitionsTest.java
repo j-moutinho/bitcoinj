@@ -39,7 +39,7 @@ public class StandardDifficultyTransitionsTest {
     // weak and strong equivalence
 
     @Test
-    public void testTC01_NoTransition_TargetMatches() throws Exception {
+    public void testTC1_NoTransition_TargetMatches() throws Exception {
         when(mockStoredPrev.getHeight()).thenReturn(2014); // CE1
         Difficulty mockDiff = mock(Difficulty.class);
         when(mockPrevHeader.difficultyTarget()).thenReturn(mockDiff);
@@ -48,7 +48,7 @@ public class StandardDifficultyTransitionsTest {
     }
 
     @Test
-    public void testTC02_NoTransition_TargetMismatch() {
+    public void testTC2_NoTransition_TargetMismatch() {
         when(mockStoredPrev.getHeight()).thenReturn(2014);
         Difficulty diff1 = mock(Difficulty.class);
         Difficulty diff2 = mock(Difficulty.class);
@@ -59,13 +59,13 @@ public class StandardDifficultyTransitionsTest {
     }
 
     @Test
-    public void testTC03_Transition_TooShort_Matches() throws Exception {
+    public void testTC3_Transition_TooShort_Matches() throws Exception {
         setupTransitionPoint(L_INF - 100); // CE5
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }
 
     @Test
-    public void testTC07_Transition_TooShort_Mismatch() throws BlockStoreException {
+    public void testTC7_Transition_TooShort_Mismatch() throws BlockStoreException {
         setupTransitionPoint(L_INF - 100);
         when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // CE9
         assertThrows(VerificationException.class, () ->
@@ -73,13 +73,13 @@ public class StandardDifficultyTransitionsTest {
     }
 
     @Test
-    public void testTC04_Transition_Normal_Matches() throws Exception {
+    public void testTC4_Transition_Normal_Matches() throws Exception {
         setupTransitionPoint(TARGET_TIMESPAN); // CE6
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }
 
     @Test
-    public void testTC06_Transition_Normal_Mismatch() throws BlockStoreException {
+    public void testTC6_Transition_Normal_Mismatch() throws BlockStoreException {
         setupTransitionPoint(TARGET_TIMESPAN);
         when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // CE9
         assertThrows(VerificationException.class, () ->
@@ -87,13 +87,13 @@ public class StandardDifficultyTransitionsTest {
     }
 
     @Test
-    public void testTC05_Transition_TooLong_Matches() throws Exception {
+    public void testTC5_Transition_TooLong_Matches() throws Exception {
         setupTransitionPoint(L_SUP + 100); // CE7
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }
 
     @Test
-    public void testTC08_Transition_TooLong_Mismatch() throws BlockStoreException {
+    public void testTC8_Transition_TooLong_Mismatch() throws BlockStoreException {
         setupTransitionPoint(L_SUP + 100);
         when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // CE9
         assertThrows(VerificationException.class, () ->
@@ -103,31 +103,31 @@ public class StandardDifficultyTransitionsTest {
     // boundary value analysis
 
     @Test
-    public void testBV01_MinBoundary() throws Exception {
+    public void testBV1_MinBoundary() throws Exception {
         setupTransitionPoint(L_INF);
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }
 
     @Test
-    public void testBV02_AboveMinBoundary() throws Exception {
+    public void testBV2_AboveMinBoundary() throws Exception {
         setupTransitionPoint(L_INF + 1);
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }
 
     @Test
-    public void testBV03_Nominal() throws Exception {
+    public void testBV3_Nominal() throws Exception {
         setupTransitionPoint(TARGET_TIMESPAN);
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }
 
     @Test
-    public void testBV04_BelowMaxBoundary() throws Exception {
+    public void testBV4_BelowMaxBoundary() throws Exception {
         setupTransitionPoint(L_SUP - 1);
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }
 
     @Test
-    public void testBV05_MaxBoundary() throws Exception {
+    public void testBV5_MaxBoundary() throws Exception {
         setupTransitionPoint(L_SUP);
         standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore);
     }

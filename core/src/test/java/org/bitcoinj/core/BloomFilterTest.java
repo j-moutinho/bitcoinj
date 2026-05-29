@@ -108,42 +108,42 @@ public class BloomFilterTest {
     private static final double HIGH_FPR = 0.1;
 
     @Test
-    public void testPW01_Small_Low_None() {
+    public void testPW1_Small_Low_None() {
         BloomFilter filter = new BloomFilter(SMALL_ELEMENTS, LOW_FPR, NONCE, BloomFilter.BloomUpdate.UPDATE_NONE);
         assertNotNull(filter);
         assertEquals(BloomFilter.BloomUpdate.UPDATE_NONE, filter.getUpdateFlag());
     }
 
     @Test
-    public void testPW02_Small_High_All() {
+    public void testPW2_Small_High_All() {
         BloomFilter filter = new BloomFilter(SMALL_ELEMENTS, HIGH_FPR, NONCE, BloomFilter.BloomUpdate.UPDATE_ALL);
         assertNotNull(filter);
         assertEquals(BloomFilter.BloomUpdate.UPDATE_ALL, filter.getUpdateFlag());
     }
 
     @Test
-    public void testPW03_Large_Low_P2PubKey() {
+    public void testPW3_Large_Low_P2PubKey() {
         BloomFilter filter = new BloomFilter(LARGE_ELEMENTS, LOW_FPR, NONCE, BloomFilter.BloomUpdate.UPDATE_P2PUBKEY_ONLY);
         assertNotNull(filter);
         assertEquals(BloomFilter.BloomUpdate.UPDATE_P2PUBKEY_ONLY, filter.getUpdateFlag());
     }
 
     @Test
-    public void testPW04_Large_High_None() {
+    public void testPW4_Large_High_None() {
         BloomFilter filter = new BloomFilter(LARGE_ELEMENTS, HIGH_FPR, NONCE, BloomFilter.BloomUpdate.UPDATE_NONE);
         assertNotNull(filter);
         assertEquals(BloomFilter.BloomUpdate.UPDATE_NONE, filter.getUpdateFlag());
     }
 
     @Test
-    public void testPW05_Small_High_P2PubKey() {
+    public void testPW5_Small_High_P2PubKey() {
         BloomFilter filter = new BloomFilter(SMALL_ELEMENTS, HIGH_FPR, NONCE, BloomFilter.BloomUpdate.UPDATE_P2PUBKEY_ONLY);
         assertNotNull(filter);
         assertEquals(BloomFilter.BloomUpdate.UPDATE_P2PUBKEY_ONLY, filter.getUpdateFlag());
     }
 
     @Test
-    public void testPW06_Large_Low_All() {
+    public void testPW6_Large_Low_All() {
         BloomFilter filter = new BloomFilter(LARGE_ELEMENTS, LOW_FPR, NONCE, BloomFilter.BloomUpdate.UPDATE_ALL);
         assertNotNull(filter);
         assertEquals(BloomFilter.BloomUpdate.UPDATE_ALL, filter.getUpdateFlag());
