@@ -17,8 +17,33 @@
 
 package org.bitcoinj.core;
 
-import org.bitcoinj.base.*;
+import java.nio.Buffer;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.IntFunction;
+import java.util.stream.Stream;
+
+import org.bitcoinj.base.Address;
+import org.bitcoinj.base.BitcoinNetwork;
+import org.bitcoinj.base.Coin;
+import org.bitcoinj.base.Network;
+import org.bitcoinj.base.ScriptType;
+import org.bitcoinj.base.Sha256Hash;
+import org.bitcoinj.base.VarInt;
+import org.bitcoinj.base.internal.ByteUtils;
+import static org.bitcoinj.base.internal.ByteUtils.writeInt32LE;
+import static org.bitcoinj.base.internal.Preconditions.checkState;
 import org.bitcoinj.base.internal.TimeUtils;
+import static org.bitcoinj.core.ProtocolVersion.WITNESS_VERSION;
 import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
 import org.bitcoinj.crypto.ECKey;
 import org.bitcoinj.crypto.TransactionSignature;
@@ -32,39 +57,19 @@ import org.bitcoinj.script.ScriptExecution;
 import org.bitcoinj.testing.FakeTxBuilder;
 import org.bitcoinj.wallet.Wallet;
 import org.easymock.EasyMock;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.math.BigInteger;
-import java.nio.Buffer;
-import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.IntFunction;
-import java.util.stream.Stream;
-
-import org.bitcoinj.base.internal.ByteUtils;
-import static org.bitcoinj.base.internal.ByteUtils.writeInt32LE;
-import static org.bitcoinj.base.internal.Preconditions.checkState;
-import static org.bitcoinj.core.ProtocolVersion.WITNESS_VERSION;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.replay;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Just check the Transaction.verify() method. Most methods that have complicated logic in Transaction are tested
@@ -753,18 +758,16 @@ public class TransactionTest {
         Transaction tx = serializer.withProtocolVersion(protoVersionNoWitness).makeTransaction(ByteBuffer.wrap(ByteUtils.parseHex(txHex)));
         assertEquals(txHex, ByteUtils.formatHex(tx.serialize()));
     }
-    // =========================================================================
-    // SOFTWARE QUALITY PROJECT: WHITE BOX (MC/DC & Paths)
-    // =========================================================================
 
-    // TC01, TC02, TC03, TC04, TC05 já presentes no código acima (testWB01 a testWB05)
+
+    // white box (MC/DC and paths)
+    // TC1, TC2, TC3, TC4, TC5 at the code above
 
     @Test
     public void testWB06_ArithmeticException() {
         Transaction tx = new Transaction();
         tx.addInput(TransactionInput.coinbaseInput(tx, new byte[2]));
-        // Injetar valor MAX_MONEY para causar overflow no .add()
-        tx.addOutput(new TransactionOutput(tx, BitcoinNetwork.MAX_MONEY, new byte[0]));
+        tx.addOutput(new TransactionOutput(tx, BitcoinNetwork.MAX_MONEY, new byte[0])); // MAX_MONEY to cause overflow
         tx.addOutput(new TransactionOutput(tx, Coin.SATOSHI, new byte[0]));
 
         assertThrows(VerificationException.ExcessiveValue.class, () -> Transaction.verify(TESTNET.network(), tx));
@@ -780,18 +783,18 @@ public class TransactionTest {
     @Test
     public void testWB11_UnexpectedCoinbaseInput() {
         Transaction tx = new Transaction();
-        // Input normal + Input Coinbase (Inválido)
+
+        // Normal input
         tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().build());
+
+        // Invalid Input
         tx.addInput(Sha256Hash.ZERO_HASH, 0xFFFFFFFFL, new ScriptBuilder().data(new byte[10]).build());
         tx.addOutput(new TransactionOutput(tx, Coin.FIFTY_COINS, new byte[0]));
 
         assertThrows(VerificationException.UnexpectedCoinbaseInput.class, () -> Transaction.verify(TESTNET.network(), tx));
     }
 
-    // =========================================================================
-    // SOFTWARE QUALITY PROJECT: DATA FLOW (DF01 & DF02)
-    // =========================================================================
-
+    // data-flow (DF1, DF2)
     @Test
     public void testDF01_SingleOutputAccumulation() {
         Network mockNetwork = mock(Network.class);
@@ -813,7 +816,7 @@ public class TransactionTest {
         tx.addOutput(new TransactionOutput(tx, Coin.valueOf(20), new byte[0]));
 
         Transaction.verify(mockNetwork, tx);
-        // Verifica se acumulou: 50+20 = 70
+        // Verify accumulation: 50+20 = 70
         verify(mockNetwork, times(1)).exceedsMaxMoney(Coin.valueOf(70));
     }
 

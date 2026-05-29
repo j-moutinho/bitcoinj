@@ -17,31 +17,25 @@
 
 package org.bitcoinj.core;
 
+import java.nio.ByteBuffer;
+
 import org.bitcoinj.base.Address;
 import org.bitcoinj.base.BitcoinNetwork;
 import org.bitcoinj.base.ScriptType;
+import org.bitcoinj.base.internal.ByteUtils;
 import org.bitcoinj.crypto.DumpedPrivateKey;
 import org.bitcoinj.crypto.ECKey;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.wallet.KeyChainGroup;
 import org.bitcoinj.wallet.Wallet;
-import org.junit.Test;
-
-import org.bitcoinj.base.internal.ByteUtils;
-
-import java.nio.ByteBuffer;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 public class BloomFilterTest {
     private static final NetworkParameters MAINNET = MainNetParams.get();
-
-    // ==========================================
-    // TESTES ORIGINAIS DO BITCOINJ
-    // ==========================================
 
     @Test
     public void insertSerializeTest() {
@@ -105,9 +99,7 @@ public class BloomFilterTest {
         assertEquals("082ae5edc8e51d4a03080000000000000002", ByteUtils.formatHex(filter.serialize()));
     }
 
-    // ==========================================
-    // PAIRWISE TESTING MATRIX (PW01 a PW06)
-    // ==========================================
+    // pairwise testing (PW1 - PW6)
 
     private static final int NONCE = 12345;
     private static final int SMALL_ELEMENTS = 100;

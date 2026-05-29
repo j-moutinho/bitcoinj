@@ -1,16 +1,18 @@
 package org.bitcoinj.core;
 
+import java.time.Instant;
+
 import org.bitcoinj.base.BitcoinNetwork;
 import org.bitcoinj.base.Difficulty;
 import org.bitcoinj.base.Sha256Hash;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
+import static org.junit.Assert.assertThrows;
 import org.junit.Before;
 import org.junit.Test;
-import java.time.Instant;
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class StandardDifficultyTransitionsTest {
     private static final DifficultyTransitions TRANSITIONS = DifficultyTransitions.of(BitcoinNetwork.MAINNET);
@@ -34,7 +36,7 @@ public class StandardDifficultyTransitionsTest {
         when(mockStoredPrev.getHeader()).thenReturn(mockPrevHeader);
     }
 
-    // --- WEAK & STRONG EQUIVALENCE (Correspondentes ao Report) ---
+    // weak and strong equivalence
 
     @Test
     public void testTC01_NoTransition_TargetMatches() throws Exception {
@@ -65,7 +67,7 @@ public class StandardDifficultyTransitionsTest {
     @Test
     public void testTC07_Transition_TooShort_Mismatch() throws BlockStoreException {
         setupTransitionPoint(L_INF - 100);
-        when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // Forçar CE9
+        when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // CE9
         assertThrows(VerificationException.class, () ->
                 standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore));
     }
@@ -79,7 +81,7 @@ public class StandardDifficultyTransitionsTest {
     @Test
     public void testTC06_Transition_Normal_Mismatch() throws BlockStoreException {
         setupTransitionPoint(TARGET_TIMESPAN);
-        when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // Forçar CE9
+        when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // CE9
         assertThrows(VerificationException.class, () ->
                 standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore));
     }
@@ -93,12 +95,12 @@ public class StandardDifficultyTransitionsTest {
     @Test
     public void testTC08_Transition_TooLong_Mismatch() throws BlockStoreException {
         setupTransitionPoint(L_SUP + 100);
-        when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // Forçar CE9
+        when(mockNextBlock.difficultyTarget()).thenReturn(mock(Difficulty.class)); // CE9
         assertThrows(VerificationException.class, () ->
                 standardTransitions.checkDifficultyTransitions(mockStoredPrev, mockNextBlock, mockBlockStore));
     }
 
-    // --- BOUNDARY VALUE ANALYSIS ---
+    // boundary value analysis
 
     @Test
     public void testBV01_MinBoundary() throws Exception {
